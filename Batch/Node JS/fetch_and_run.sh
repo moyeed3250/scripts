@@ -88,7 +88,7 @@ fetch_and_run_script () {
   # Make the temporary file executable and run it with any given arguments
   local script="./${1}"; shift
   chmod u+x "${TMPFILE}" || error_exit "Failed to chmod script."
-  exec ${TMPFILE} "${@}" || error_exit "Failed to execute script."
+  node ${TMPFILE} "${@}" || error_exit "Failed to execute script."
 }
 
 # Download a zip and run a specified script from inside
@@ -104,7 +104,7 @@ fetch_and_run_zip () {
   local script="./${1}"; shift
   [ -r "${script}" ] || error_exit "Did not find specified script '${script}' in zip from ${BATCH_FILE_S3_URL}"
   chmod u+x "${script}" || error_exit "Failed to chmod script."
-  exec "${script}" "${@}" || error_exit " Failed to execute script."
+  node "${script}" "${@}" || error_exit " Failed to execute script."
 }
 
 # Main - dispatch user request to appropriate function
