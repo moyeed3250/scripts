@@ -1,0 +1,137 @@
+Private Declare PtrSafe Function SetCursorPos Lib "user32" (ByVal x As Long, ByVal y As Long) As Long
+Private Declare PtrSafe Sub mouse_event Lib "user32" (ByVal dwFlags As Long, ByVal dx As Long, ByVal dy As Long, ByVal cButtons As Long, ByVal dwExtraInfo As Long)
+Private Const MOUSEEVENTF_LEFTDOWN = &H2
+Private Const MOUSEEVENTF_LEFTUP = &H4
+Private Const MOUSEEVENTF_RIGHTDOWN As Long = &H8
+Private Const MOUSEEVENTF_RIGHTUP As Long = &H10
+
+Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+
+Public Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As POINTAPI) As Long
+Public Type POINTAPI
+x As Long
+y As Long
+End Type
+
+Sub MouseMove()
+
+Dim lngCurPos As POINTAPI
+Dim StartTime As Double
+Dim SecondsElapsed As Double
+Dim MinutesElapsed As String
+
+StartTime = Timer
+StartTime1 = Timer
+GetCursorPos lngCurPos
+x2 = lngCurPos.x
+y2 = lngCurPos.y
+Worksheets("Sheet1").Range("B1:B6").Value = ""
+Worksheets("Sheet1").Range("A1").Value = "Cursor Position"
+Worksheets("Sheet1").Range("A2").Value = "Time Elapsed"
+Worksheets("Sheet1").Range("A3").Value = "Seconds Elapsed"
+Worksheets("Sheet1").Range("A4").Value = "Time Remaining"
+Worksheets("Sheet1").Range("A5").Value = "Times Activated"
+Worksheets("Sheet1").Range("A6").Value = "Total Run Time"
+Worksheets("Sheet1").Range("A7").Value = "Time to Activate"
+Worksheets("Sheet1").Range("B4").Interior.ColorIndex = xlNone
+Worksheets("Sheet1").Range("B7").Interior.ColorIndex = 6
+Worksheets("Sheet1").Range("A1:B7").Borders.LineStyle = xlContinuous
+Worksheets("Sheet1").Columns("A").ColumnWidth = 21
+Worksheets("Sheet1").Columns("B").ColumnWidth = 15
+Worksheets("Sheet1").Columns("B").HorizontalAlignment = xlCenter
+If Worksheets("Sheet1").Range("B7").Value = "" Then
+    Worksheets("Sheet1").Range("B7").Value = "12:01:00 AM"
+End If
+Worksheets("Sheet1").Range("B7").NumberFormat = "hh:mm:ss"
+
+SecondsToActivate = Worksheets("Sheet1").Range("B7").Value
+SecondsToActivate = Hour(SecondsToActivate) * 3600 + Minute(SecondsToActivate) * 60 + Second(SecondsToActivate)
+
+counter = 0
+
+Do
+
+DoEvents
+
+GetCursorPos lngCurPos
+x1 = lngCurPos.x
+y1 = lngCurPos.y
+
+If x1 <> x2 Or y1 <> y2 Then
+    StartTime = Timer
+    Worksheets("Sheet1").Range("B4").Interior.ColorIndex = xlNone
+End If
+
+SecondsElapsed = Round(Timer - StartTime, 2)
+MinutesElapsed = Format(((Timer - StartTime) - 0.5) / 86400, "hh:mm:ss")
+
+Worksheets("Sheet1").Range("B1").Value = "X: " & lngCurPos.x & " Y: " & lngCurPos.y
+Worksheets("Sheet1").Range("B2").Value = MinutesElapsed
+Worksheets("Sheet1").Range("B3").Value = SecondsElapsed
+Worksheets("Sheet1").Range("B4").Value = Format(((SecondsToActivate - SecondsElapsed) + 0.5) / 86400, "hh:mm:ss")
+Worksheets("Sheet1").Range("B5").Value = counter
+Worksheets("Sheet1").Range("B6").Value = Format(((Timer - StartTime1) - 0.5) / 86400, "hh:mm:ss")
+
+If SecondsElapsed < SecondsToActivate * 0.7 Then
+    Worksheets("Sheet1").Range("B4").Font.Color = RGB(0, 0, 255)
+ElseIf SecondsElapsed >= SecondsToActivate * 0.7 And SecondsElapsed < SecondsToActivate * 0.8 Then
+    Worksheets("Sheet1").Range("B4").Interior.ColorIndex = 6
+    Worksheets("Sheet1").Range("B4").Font.Color = RGB(0, 0, 255)
+ElseIf SecondsElapsed >= SecondsToActivate * 0.8 And SecondsElapsed < SecondsToActivate * 0.9 Then
+    Worksheets("Sheet1").Range("B4").Interior.ColorIndex = 46
+    Worksheets("Sheet1").Range("B4").Font.Color = RGB(0, 0, 255)
+ElseIf SecondsElapsed >= SecondsToActivate * 0.9 And SecondsElapsed < SecondsToActivate * 0.95 Then
+    Worksheets("Sheet1").Range("B4").Interior.ColorIndex = 3
+    Worksheets("Sheet1").Range("B4").Font.Color = RGB(255, 255, 255)
+ElseIf SecondsElapsed >= SecondsToActivate * 0.95 Then
+    If SecondsElapsed Mod 2 = 0 Then
+        Worksheets("Sheet1").Range("B4").Interior.ColorIndex = xlNone
+        Worksheets("Sheet1").Range("B4").Font.Color = RGB(255, 0, 0)
+    ElseIf SecondsElapsed Mod 2 <> 0 Then
+        Worksheets("Sheet1").Range("B4").Interior.ColorIndex = 3
+        Worksheets("Sheet1").Range("B4").Font.Color = RGB(255, 255, 255)
+    End If
+End If
+
+If SecondsElapsed >= SecondsToActivate Then
+    Worksheets("Sheet1").Range("B4").Interior.ColorIndex = xlNone
+    Worksheets("Sheet1").Range("B4").Font.Color = RGB(0, 0, 255)
+    For i = 1 To 500
+        For j = 1 To 100
+            SetCursorPos x1 + j, y1
+        Next j
+        For j = 99 To 0 Step -1
+            SetCursorPos x1 + j, y1
+        Next j
+    Next i
+    mouse_event MOUSEEVENTF_LEFTDOWN, 0&, 0&, 0&, 0&
+    Sleep 100
+    mouse_event MOUSEEVENTF_LEFTUP, 0&, 0&, 0&, 0&
+    Sleep 100
+    SendKeys "{NUMLOCK}", True
+    Sleep 100
+    SendKeys "{NUMLOCK}", True
+    Sleep 100
+    StartTime = Timer
+    counter = counter + 1
+End If
+
+GetCursorPos lngCurPos
+x2 = lngCurPos.x
+y2 = lngCurPos.y
+
+Sleep 250
+
+Loop
+
+End Sub
+
+
+----------------------------------------------------
+Cursor Position
+Time Elapsed
+Seconds Elapsed
+Time Remaining
+Times Activated
+Total Run Time
+Time to Activate
