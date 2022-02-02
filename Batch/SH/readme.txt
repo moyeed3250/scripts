@@ -31,3 +31,6 @@ Key=BATCH_FILE_S3_URL, Value=s3://ungerw-batch-bucket/myjob.sh
 -create Job:
 command : myjob.sh 'AWS Friends'
 
+-------------------------------------------------------
+https://www.youtube.com/watch?v=TsHEhVe0b1s
+------------------------------------------------------
